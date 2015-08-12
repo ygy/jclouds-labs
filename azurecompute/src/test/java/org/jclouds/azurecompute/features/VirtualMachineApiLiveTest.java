@@ -20,10 +20,6 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.jclouds.azurecompute.domain.Deployment.InstanceStatus.READY_ROLE;
 import static org.jclouds.util.Predicates2.retry;
 import static org.testng.Assert.assertTrue;
-
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
-
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,6 +37,11 @@ import org.jclouds.azurecompute.util.ConflictManagementPredicate;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 
 /*
  * Note: Live test for CaptureVMImage method is in VMImageApiLiveTest class
@@ -94,9 +95,9 @@ public class VirtualMachineApiLiveTest extends BaseAzureComputeApiLiveTest {
               .username("test")
               .password("supersecurePassword1!")
               .size(RoleSize.Type.BASIC_A2)
-              .subnetName(Iterables.get(virtualNetworkSite.subnets(), 0).name())
+              .subnetNames(ImmutableList.of(Iterables.get(virtualNetworkSite.subnets(), 0).name()))
               .virtualNetworkName(virtualNetworkSite.name())
-              .externalEndpoint(DeploymentParams.ExternalEndpoint.inboundTcpToLocalPort(22, 22))
+              .externalEndpoints(ImmutableSet.of(DeploymentParams.ExternalEndpoint.inboundTcpToLocalPort(22, 22)))
               .build();
       getOrCreateDeployment(cloudService.name(), params);
       RoleInstance roleInstance = getFirstRoleInstanceInDeployment(DEPLOYMENT);

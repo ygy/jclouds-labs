@@ -17,15 +17,12 @@
 package org.jclouds.azurecompute.compute;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.Assert.assertTrue;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.Set;
 
-import org.jclouds.azurecompute.AzureComputeApi;
+import org.jclouds.azurecompute.compute.options.AzureComputeTemplateOptions;
 import org.jclouds.azurecompute.internal.BaseAzureComputeApiLiveTest;
-import org.jclouds.azurecompute.options.AzureComputeTemplateOptions;
-import org.jclouds.azurecompute.util.ConflictManagementPredicate;
 import org.jclouds.compute.RunNodesException;
 import org.jclouds.compute.domain.ExecResponse;
 import org.jclouds.compute.domain.NodeMetadata;
@@ -34,52 +31,13 @@ import org.jclouds.compute.domain.TemplateBuilder;
 import org.jclouds.compute.internal.BaseComputeServiceContextLiveTest;
 import org.jclouds.ssh.SshClient;
 import org.jclouds.sshj.config.SshjSshClientModule;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.google.common.collect.Iterables;
-import com.google.common.reflect.TypeToken;
 import com.google.inject.Module;
 
 @Test(groups = "live", testName = "AzureComputeServiceContextLiveTest")
 public class AzureComputeServiceContextLiveTest extends BaseComputeServiceContextLiveTest {
-
-   private static final int RAND = new Random().nextInt(999);
-
-   private AzureComputeApi api;
-
-   private String storageServiceName = null;
-
-   protected String getStorageServiceName() {
-      if (storageServiceName == null) {
-         storageServiceName = String.format("%3.20sacsc", System.getProperty("user.name") + RAND).toLowerCase();
-      }
-      return storageServiceName;
-   }
-
-   @BeforeClass
-   public void setup() {
-      api = newBuilder().
-              modules(setupModules()).
-              overrides(setupProperties()).
-              buildApi(new TypeToken<AzureComputeApi>(getClass()) {
-
-                 private static final long serialVersionUID = 309104475566522958L;
-
-              });
-   }
-
-   @AfterClass(alwaysRun = true)
-   public void tearDown() {
-      assertTrue(new ConflictManagementPredicate(api) {
-
-         @Override
-         protected String operation() {
-            return api.getStorageAccountApi().delete(getStorageServiceName());
-         }
-      }.apply(getStorageServiceName()));
-   }
 
    @Override
    protected Module getSshModule() {
@@ -87,25 +45,18 @@ public class AzureComputeServiceContextLiveTest extends BaseComputeServiceContex
    }
 
    public AzureComputeServiceContextLiveTest() {
-      super();
-
       provider = "azurecompute";
    }
 
    /**
-    * Functionally equivalent to
-    * {@link AzureComputeServiceAdapterLiveTest#testCreateNodeWithGroupEncodedIntoNameThenStoreCredentials}.
-    *
     * @throws RunNodesException
     */
    @Test
    public void testLaunchNode() throws RunNodesException {
+      final int rand = new Random().nextInt(999);
+      final String groupName = String.format("%s%d-group-acsclt", System.getProperty("user.name"), rand);
 
-       final String groupName = String.format("%s%d-group-acsclt",
-              System.getProperty("user.name"),
-              new Random(999).nextInt());
-
-      final String name = String.format("%1.5s%dacsclt", System.getProperty("user.name"), new Random(999).nextInt());
+      final String name = String.format("%1.5s%dacsclt", System.getProperty("user.name"), rand);
 
       final TemplateBuilder templateBuilder = view.getComputeService().templateBuilder();
       templateBuilder.imageId(BaseAzureComputeApiLiveTest.IMAGE_NAME);
@@ -116,18 +67,12 @@ public class AzureComputeServiceContextLiveTest extends BaseComputeServiceContex
       // test passing custom options
       final AzureComputeTemplateOptions options = tmp.getOptions().as(AzureComputeTemplateOptions.class);
       options.inboundPorts(22);
-      options.storageAccountName(getStorageServiceName());
-      options.virtualNetworkName(BaseAzureComputeApiLiveTest.VIRTUAL_NETWORK_NAME);
-      options.subnetName(BaseAzureComputeApiLiveTest.DEFAULT_SUBNET_NAME);
-      options.addressSpaceAddressPrefix(BaseAzureComputeApiLiveTest.DEFAULT_ADDRESS_SPACE);
-      options.subnetAddressPrefix(BaseAzureComputeApiLiveTest.DEFAULT_SUBNET_ADDRESS_SPACE);
       options.nodeNames(Arrays.asList(name));
 
       NodeMetadata node = null;
       try {
          final Set<? extends NodeMetadata> nodes = view.getComputeService().createNodesInGroup(groupName, 1, tmp);
          node = Iterables.getOnlyElement(nodes);
-
          final SshClient client = view.utils().sshForNode().apply(node);
          client.connect();
          final ExecResponse hello = client.exec("echo hello");
@@ -137,6 +82,58 @@ public class AzureComputeServiceContextLiveTest extends BaseComputeServiceContex
             view.getComputeService().destroyNode(node.getId());
          }
       }
+   }
+
+   @Test
+   public void testLaunchNodeAndNetwork() throws RunNodesException {
+      final int rand = new Random().nextInt(999);
+      final String groupName = String.format("%s%d-group-acsclt", System.getProperty("user.name"), rand);
+
+      final String name = String.format("%1.5s%dacsclt", System.getProperty("user.name"), rand);
+
+      final TemplateBuilder templateBuilder = view.getComputeService().templateBuilder();
+      templateBuilder.imageId(BaseAzureComputeApiLiveTest.IMAGE_NAME);
+      templateBuilder.hardwareId("BASIC_A0");
+      templateBuilder.locationId(BaseAzureComputeApiLiveTest.LOCATION);
+      final Template tmp = templateBuilder.build();
+
+      // test passing custom options
+      final AzureComputeTemplateOptions options = tmp.getOptions().as(AzureComputeTemplateOptions.class);
+      options.inboundPorts(22);
+      // NB the user must know prior virtualNetworkName and subnetNames
+      options.virtualNetworkName(BaseAzureComputeApiLiveTest.VIRTUAL_NETWORK_NAME);
+      options.subnetNames("jclouds-1");
+      options.nodeNames(Arrays.asList(name));
+
+      NodeMetadata node = null;
+      try {
+         final Set<? extends NodeMetadata> nodes = view.getComputeService().createNodesInGroup(groupName, 1, tmp);
+         node = Iterables.getOnlyElement(nodes);
+         final SshClient client = view.utils().sshForNode().apply(node);
+         client.connect();
+         final ExecResponse hello = client.exec("echo hello");
+         assertThat(hello.getOutput().trim()).isEqualTo("hello");
+      } finally {
+         if (node != null) {
+            view.getComputeService().destroyNode(node.getId());
+         }
+      }
+   }
+
+   @Test(expectedExceptions = { IllegalStateException.class })
+       public void testNotExistingStorageAccount() throws RunNodesException {
+      final int rand = new Random().nextInt(999);
+      final String groupName = String.format("%s%d-group-acsclt", System.getProperty("user.name"), rand);
+
+      final String storageServiceName = "not3x1st1ng";
+
+      final Template template = view.getComputeService().templateBuilder().build();
+
+      // test passing custom options
+      final AzureComputeTemplateOptions options = template.getOptions().as(AzureComputeTemplateOptions.class);
+      options.storageAccountName(storageServiceName);
+
+      Set<? extends NodeMetadata> nodes = view.getComputeService().createNodesInGroup(groupName, 1, template);
    }
 
 }

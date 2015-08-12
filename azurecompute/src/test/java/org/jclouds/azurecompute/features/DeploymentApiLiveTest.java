@@ -19,30 +19,31 @@ package org.jclouds.azurecompute.features;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jclouds.util.Predicates2.retry;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.assertEquals;
-
+import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jclouds.azurecompute.compute.AzureComputeServiceAdapter;
 import org.jclouds.azurecompute.domain.CloudService;
+import org.jclouds.azurecompute.domain.CloudServiceProperties;
 import org.jclouds.azurecompute.domain.Deployment;
 import org.jclouds.azurecompute.domain.DeploymentParams;
 import org.jclouds.azurecompute.domain.OSImage;
+import org.jclouds.azurecompute.domain.Role;
 import org.jclouds.azurecompute.domain.RoleSize;
-import org.jclouds.azurecompute.domain.CloudServiceProperties;
 import org.jclouds.azurecompute.internal.BaseAzureComputeApiLiveTest;
+import org.jclouds.azurecompute.util.ConflictManagementPredicate;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import java.util.List;
-import java.util.logging.Level;
-import org.jclouds.azurecompute.domain.Role;
-import org.jclouds.azurecompute.util.ConflictManagementPredicate;
 
 @Test(groups = "live", testName = "DeploymentApiLiveTest", singleThreaded = true)
 public class DeploymentApiLiveTest extends BaseAzureComputeApiLiveTest {
@@ -94,9 +95,9 @@ public class DeploymentApiLiveTest extends BaseAzureComputeApiLiveTest {
               .username("test")
               .password("supersecurePassword1!")
               .size(RoleSize.Type.BASIC_A2)
-              .subnetName(Iterables.get(virtualNetworkSite.subnets(), 0).name())
+              .subnetNames(ImmutableList.of(Iterables.get(virtualNetworkSite.subnets(), 0).name()))
               .virtualNetworkName(virtualNetworkSite.name())
-              .externalEndpoint(DeploymentParams.ExternalEndpoint.inboundTcpToLocalPort(22, 22))
+              .externalEndpoints(ImmutableSet.of(DeploymentParams.ExternalEndpoint.inboundTcpToLocalPort(22, 22)))
               .build();
       final String requestId = api().create(params);
       assertTrue(operationSucceeded.apply(requestId), requestId);

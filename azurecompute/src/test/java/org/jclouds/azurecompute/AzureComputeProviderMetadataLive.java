@@ -22,13 +22,14 @@ import static org.jclouds.azurecompute.config.AzureComputeProperties.OPERATION_T
 import static org.jclouds.azurecompute.config.AzureComputeProperties.TCP_RULE_FORMAT;
 import static org.jclouds.azurecompute.config.AzureComputeProperties.TCP_RULE_REGEXP;
 import static org.jclouds.compute.config.ComputeServiceProperties.TEMPLATE;
-
-import com.google.auto.service.AutoService;
 import java.net.URI;
 import java.util.Properties;
+
 import org.jclouds.azurecompute.domain.Region;
 import org.jclouds.azurecompute.internal.BaseAzureComputeApiLiveTest;
 import org.jclouds.providers.ProviderMetadata;
+
+import com.google.auto.service.AutoService;
 
 @AutoService(ProviderMetadata.class)
 public class AzureComputeProviderMetadataLive extends AzureComputeProviderMetadata {
@@ -44,7 +45,7 @@ public class AzureComputeProviderMetadataLive extends AzureComputeProviderMetada
 
    public static Properties defaultProperties() {
       final Properties properties = AzureManagementApiMetadata.defaultProperties();
-      properties.setProperty(TEMPLATE, "osFamily=UBUNTU,osVersionMatches=.*14\\.10,loginUser=jclouds,"
+      properties.setProperty(TEMPLATE, "osVersionMatches=1[01234].[01][04],os64Bit=true,loginUser=jclouds,"
               + "locationId=" + BaseAzureComputeApiLiveTest.LOCATION);
       properties.setProperty(OPERATION_TIMEOUT, "600000");
       properties.setProperty(OPERATION_POLL_INITIAL_PERIOD, "5");

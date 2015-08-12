@@ -20,7 +20,6 @@ import static com.google.common.base.Predicates.notNull;
 import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.jclouds.util.Predicates2.retry;
-
 import java.net.URI;
 import java.util.List;
 import java.util.Set;
@@ -32,18 +31,19 @@ import javax.inject.Singleton;
 
 import org.jclouds.azurecompute.AzureComputeApi;
 import org.jclouds.azurecompute.compute.config.AzureComputeServiceContextModule.AzureComputeConstants;
+import org.jclouds.azurecompute.compute.functions.OSImageToImage;
+import org.jclouds.azurecompute.compute.options.AzureComputeTemplateOptions;
 import org.jclouds.azurecompute.config.AzureComputeProperties;
 import org.jclouds.azurecompute.domain.CloudService;
 import org.jclouds.azurecompute.domain.Deployment;
+import org.jclouds.azurecompute.domain.Deployment.RoleInstance;
 import org.jclouds.azurecompute.domain.DeploymentParams;
 import org.jclouds.azurecompute.domain.DeploymentParams.ExternalEndpoint;
 import org.jclouds.azurecompute.domain.Location;
 import org.jclouds.azurecompute.domain.OSImage;
-import org.jclouds.azurecompute.domain.RoleSize;
-import org.jclouds.azurecompute.domain.Deployment.RoleInstance;
 import org.jclouds.azurecompute.domain.Role;
-import org.jclouds.azurecompute.compute.functions.OSImageToImage;
-import org.jclouds.azurecompute.options.AzureComputeTemplateOptions;
+import org.jclouds.azurecompute.domain.RoleSize;
+import org.jclouds.azurecompute.util.ConflictManagementPredicate;
 import org.jclouds.compute.ComputeServiceAdapter;
 import org.jclouds.compute.domain.OsFamily;
 import org.jclouds.compute.domain.Template;
@@ -59,7 +59,6 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.jclouds.azurecompute.util.ConflictManagementPredicate;
 
 /**
  * Defines the connection between the {@link AzureComputeApi} implementation and the jclouds
@@ -105,10 +104,7 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Deploym
       final String location = template.getLocation().getId();
       final int[] inboundPorts = template.getOptions().getInboundPorts();
 
-      final String storageAccountName = templateOptions.getStorageAccountName().get();
-      final String virtualNetworkName = templateOptions.getVirtualNetworkName().get();
-      final String reservedIPAddress = templateOptions.getReservedIPName().orNull();
-      final String subnetName = templateOptions.getSubnetName().get();
+      final String storageAccountName = templateOptions.getStorageAccountName();
 
       logger.debug("Creating a cloud service with name '%s', label '%s' in location '%s'", name, name, location);
       final String createCloudServiceRequestId
@@ -127,6 +123,7 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Deploym
       for (int inboundPort : inboundPorts) {
          externalEndpoints.add(ExternalEndpoint.inboundTcpToLocalPort(inboundPort, inboundPort));
       }
+
       final DeploymentParams params = DeploymentParams.builder()
               .name(name)
               .os(os)
@@ -136,9 +133,8 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Deploym
               .mediaLink(createMediaLink(storageAccountName, name))
               .size(RoleSize.Type.fromString(template.getHardware().getName()))
               .externalEndpoints(externalEndpoints)
-              .subnetName(subnetName)
-              .virtualNetworkName(virtualNetworkName)
-              .reservedIPName(reservedIPAddress)
+              .virtualNetworkName(templateOptions.getVirtualNetworkName())
+              .subnetNames(templateOptions.getSubnetNames())
               .build();
 
       logger.debug("Creating a deployment with params '%s' ...", params);
@@ -378,7 +374,6 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Deploym
             }
          }
       }
-
       return deployment;
    }
 
