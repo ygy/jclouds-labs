@@ -19,29 +19,27 @@ package org.jclouds.azurecompute.features;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
-import static org.jclouds.azurecompute.internal.BaseAzureComputeApiLiveTest.VIRTUAL_NETWORK_NAME;
+import java.util.List;
 
-import com.google.common.base.Predicates;
-
+import org.jclouds.azurecompute.AzureTestUtils;
 import org.jclouds.azurecompute.domain.NetworkConfiguration;
 import org.jclouds.azurecompute.domain.NetworkConfiguration.VirtualNetworkSite;
 import org.jclouds.azurecompute.internal.BaseAzureComputeApiLiveTest;
-
+import org.jclouds.azurecompute.util.ConflictManagementPredicate;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
-import org.jclouds.azurecompute.AzureTestUtils;
-import org.jclouds.azurecompute.util.ConflictManagementPredicate;
-import org.testng.annotations.AfterSuite;
-import org.testng.annotations.BeforeSuite;
-
-import java.util.List;
-
 @Test(groups = "live", testName = "VirtualNetworkApiLiveTest", singleThreaded = true)
 public class VirtualNetworkApiLiveTest extends BaseAzureComputeApiLiveTest {
+
+   private static final String DEFAULT_ADDRESS_SPACE = "10.0.0.0/20";
+   private static final String DEFAULT_SUBNET_ADDRESS_SPACE = "10.0.0.0/23";
 
    @BeforeSuite
    @Override

@@ -16,6 +16,7 @@
  */
 package org.jclouds.azurecompute.compute;
 
+import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.base.Predicates.notNull;
 import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -97,28 +98,24 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Deploym
       // azure-specific options
       final AzureComputeTemplateOptions templateOptions = template.getOptions().as(AzureComputeTemplateOptions.class);
 
-      final String loginUser = templateOptions.getLoginUser() == null
-              ? DEFAULT_LOGIN_USER : templateOptions.getLoginUser();
-      final String loginPassword = templateOptions.getLoginPassword() == null
-              ? DEFAULT_LOGIN_PASSWORD : templateOptions.getLoginPassword();
+      final String loginUser = firstNonNull(templateOptions.getLoginUser(), DEFAULT_LOGIN_USER);
+      final String loginPassword = firstNonNull(templateOptions.getLoginPassword(), DEFAULT_LOGIN_PASSWORD);
       final String location = template.getLocation().getId();
       final int[] inboundPorts = template.getOptions().getInboundPorts();
 
       final String storageAccountName = templateOptions.getStorageAccountName();
 
       logger.debug("Creating a cloud service with name '%s', label '%s' in location '%s'", name, name, location);
-      final String createCloudServiceRequestId
-              = api.getCloudServiceApi().createWithLabelInLocation(name, name, location);
+      final String createCloudServiceRequestId = api.getCloudServiceApi().createWithLabelInLocation(name, name, location);
       if (!operationSucceededPredicate.apply(createCloudServiceRequestId)) {
-         final String message = generateIllegalStateExceptionMessage(
-                 createCloudServiceRequestId, azureComputeConstants.operationTimeout());
+         final String message = generateIllegalStateExceptionMessage(createCloudServiceRequestId, azureComputeConstants.operationTimeout());
          logger.warn(message);
          throw new IllegalStateException(message);
       }
       logger.info("Cloud Service (%s) created with operation id: %s", name, createCloudServiceRequestId);
 
-      final OSImage.Type os = template.getImage().getOperatingSystem().getFamily() == OsFamily.WINDOWS
-              ? OSImage.Type.WINDOWS : OSImage.Type.LINUX;
+      final OSImage.Type os = template.getImage().getOperatingSystem().getFamily() == OsFamily.WINDOWS ?
+              OSImage.Type.WINDOWS : OSImage.Type.LINUX;
       final Set<ExternalEndpoint> externalEndpoints = Sets.newHashSet();
       for (int inboundPort : inboundPorts) {
          externalEndpoints.add(ExternalEndpoint.inboundTcpToLocalPort(inboundPort, inboundPort));

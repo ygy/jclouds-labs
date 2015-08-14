@@ -43,7 +43,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 
@@ -91,8 +90,6 @@ public class VMImageApiLiveTest extends BaseAzureComputeApiLiveTest {
                 .username("test")
                 .password("supersecurePassword1!")
                 .size(RoleSize.Type.BASIC_A2)
-                .subnetNames(ImmutableList.of(Iterables.get(virtualNetworkSite.subnets(), 0).name()))
-                .virtualNetworkName(virtualNetworkSite.name())
                 .externalEndpoints(ImmutableSet.of(DeploymentParams.ExternalEndpoint.inboundTcpToLocalPort(22, 22)))
                 .build();
         Deployment deployment = getOrCreateDeployment(cloudService.name(), params);

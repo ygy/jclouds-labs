@@ -41,9 +41,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 
 @Test(groups = "live", testName = "DeploymentApiLiveTest", singleThreaded = true)
 public class DeploymentApiLiveTest extends BaseAzureComputeApiLiveTest {
@@ -94,9 +92,7 @@ public class DeploymentApiLiveTest extends BaseAzureComputeApiLiveTest {
               .mediaLink(AzureComputeServiceAdapter.createMediaLink(storageService.serviceName(), DEPLOYMENT))
               .username("test")
               .password("supersecurePassword1!")
-              .size(RoleSize.Type.BASIC_A2)
-              .subnetNames(ImmutableList.of(Iterables.get(virtualNetworkSite.subnets(), 0).name()))
-              .virtualNetworkName(virtualNetworkSite.name())
+              .size(RoleSize.Type.BASIC_A0)
               .externalEndpoints(ImmutableSet.of(DeploymentParams.ExternalEndpoint.inboundTcpToLocalPort(22, 22)))
               .build();
       final String requestId = api().create(params);
@@ -111,7 +107,6 @@ public class DeploymentApiLiveTest extends BaseAzureComputeApiLiveTest {
       assertThat(deployment.slot()).isEqualTo(Deployment.Slot.PRODUCTION);
       assertThat(deployment.roleList().size()).isEqualTo(1);
       assertThat(deployment.roleInstanceList().size()).isEqualTo(1);
-      assertThat(deployment.virtualNetworkName()).isEqualTo(virtualNetworkSite.name());
 
    }
 

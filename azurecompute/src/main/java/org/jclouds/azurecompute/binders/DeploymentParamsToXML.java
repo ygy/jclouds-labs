@@ -91,7 +91,7 @@ public final class DeploymentParamsToXML implements Binder {
          inputEndpoints.up();
 
          XMLBuilder subnetNames = configBuilder.e("SubnetNames");
-         if (params.subnetNames() != null) {
+         if (!params.subnetNames().isEmpty()) {
             for (String subnetName : params.subnetNames()) {
                subnetNames.e("SubnetName").t(subnetName).up()
                        .up(); //subnetName

@@ -127,7 +127,9 @@ public abstract class DeploymentParams {
    public abstract List<String> subnetNames();
 
    public static Builder builder() {
-      return new AutoValue_DeploymentParams.Builder().externalEndpoints(null).subnetNames(null);
+      return new AutoValue_DeploymentParams.Builder()
+              .externalEndpoints(ImmutableSet.<ExternalEndpoint> of())
+              .subnetNames(ImmutableList.<String> of());
    }
 
    abstract Builder toBuilder();

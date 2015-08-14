@@ -16,6 +16,7 @@
  */
 package org.jclouds.azurecompute.compute.strategy;
 
+import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.base.Predicates.and;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.collect.Iterables.tryFind;
@@ -96,7 +97,7 @@ public class GetOrCreateStorageServiceAndVirtualNetworkThenCreateNodes
       final AzureComputeTemplateOptions templateOptions = template.getOptions().as(AzureComputeTemplateOptions.class);
       final String location = template.getLocation().getId();
       final String storageAccountName = templateOptions.getStorageAccountName();
-      final String storageAccountType = templateOptions.getStorageAccountType() == null ? DEFAULT_STORAGE_SERVICE_TYPE : templateOptions.getStorageAccountType();
+      final String storageAccountType = firstNonNull(templateOptions.getStorageAccountType(), DEFAULT_STORAGE_SERVICE_TYPE);
       final String virtualNetworkName = templateOptions.getVirtualNetworkName();
 
       final StorageService storageService;
