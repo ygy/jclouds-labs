@@ -171,8 +171,9 @@ public class VirtualMachineApiLiveTest extends BaseAzureComputeApiLiveTest {
       Logger.getAnonymousLogger().log(Level.INFO, "roleInstance restarted: {0}", roleInstance);
    }
 
-   @AfterClass(alwaysRun = true)
-   public void cleanup() {
+   @AfterClass
+   @Override
+   protected void tearDown() {
       if (cloudService != null && api.getDeploymentApiForService(cloudService.name()).get(DEPLOYMENT) != null) {
          final List<Role> roles = api.getDeploymentApiForService(cloudService.name()).get(DEPLOYMENT).roleList();
 
@@ -183,14 +184,6 @@ public class VirtualMachineApiLiveTest extends BaseAzureComputeApiLiveTest {
                return api.getDeploymentApiForService(cloudService.name()).delete(DEPLOYMENT);
             }
          }.apply(DEPLOYMENT));
-
-         assertTrue(new ConflictManagementPredicate(api) {
-
-            @Override
-            protected String operation() {
-               return api.getCloudServiceApi().delete(cloudService.name());
-            }
-         }.apply(cloudService.name()));
 
          for (Role r : roles) {
             final Role.OSVirtualHardDisk disk = r.osVirtualHardDisk();
@@ -204,6 +197,16 @@ public class VirtualMachineApiLiveTest extends BaseAzureComputeApiLiveTest {
                }.apply(disk.diskName()));
             }
          }
+
+         assertTrue(new ConflictManagementPredicate(api) {
+
+            @Override
+            protected String operation() {
+               return api.getCloudServiceApi().delete(cloudService.name());
+            }
+         }.apply(cloudService.name()));
+
+         super.tearDown();
       }
    }
 
