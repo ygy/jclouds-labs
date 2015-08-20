@@ -198,6 +198,12 @@ public class VMImageApiLiveTest extends BaseAzureComputeApiLiveTest {
                 return api.getDiskApi().delete(diskName);
             }
         }.apply(diskName));
+       assertTrue(new ConflictManagementPredicate(api) {
+          @Override
+          protected String operation() {
+             return api.getCloudServiceApi().delete(cloudService.name());
+          }
+       }.apply(cloudService.name()));
         super.tearDown();
     }
 
