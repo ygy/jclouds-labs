@@ -97,7 +97,7 @@ public class NetworkSecurityGroupApiLiveTest extends BaseAzureComputeApiLiveTest
       assertEquals(group.name(), GROUP1);
       assertEquals(group.label(), GROUP1 + " security group");
       assertEquals(group.location(), LOCATION);
-      assertNull(group.state());
+      assertTrue(group.state() == NetworkSecurityGroup.State.CREATED);
       assertTrue(group.rules().isEmpty());
    }
 
@@ -107,7 +107,7 @@ public class NetworkSecurityGroupApiLiveTest extends BaseAzureComputeApiLiveTest
       assertEquals(group.name(), GROUP2);
       assertEquals(group.label(), GROUP2 + " security group");
       assertEquals(group.location(), LOCATION);
-      assertNull(group.state());
+      assertTrue(group.state() == NetworkSecurityGroup.State.CREATED);
       assertFalse(group.rules().isEmpty());
    }
 

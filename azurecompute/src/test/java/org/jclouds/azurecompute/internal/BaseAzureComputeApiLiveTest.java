@@ -65,6 +65,8 @@ public class BaseAzureComputeApiLiveTest extends AbstractAzureComputeApiLiveTest
 
    private String storageServiceName = null;
 
+   private List<VirtualNetworkSite> initialVirtualNetworkSite;
+
    protected String getStorageServiceName() {
       if (storageServiceName == null) {
          storageServiceName = String.format("%3.24s",
@@ -79,6 +81,9 @@ public class BaseAzureComputeApiLiveTest extends AbstractAzureComputeApiLiveTest
       super.setup();
 
       operationSucceeded = new ConflictManagementPredicate(api, 600, 5, 5, SECONDS);
+
+      initialVirtualNetworkSite = AzureTestUtils.getVirtualNetworkSite(api);
+
       virtualNetworkSite = getOrCreateVirtualNetworkSite(VIRTUAL_NETWORK_NAME, LOCATION);
 
       final CreateStorageServiceParams params = CreateStorageServiceParams.builder().
@@ -96,12 +101,20 @@ public class BaseAzureComputeApiLiveTest extends AbstractAzureComputeApiLiveTest
       super.tearDown();
 
       assertTrue(new ConflictManagementPredicate(api) {
-
          @Override
          protected String operation() {
             return api.getStorageAccountApi().delete(getStorageServiceName());
          }
       }.apply(getStorageServiceName()));
+
+      final NetworkConfiguration networkConfiguration = NetworkConfiguration.create(VirtualNetworkConfiguration.create(null, initialVirtualNetworkSite));
+      assertTrue(new ConflictManagementPredicate(api) {
+         @Override
+         protected String operation() {
+            return api.getVirtualNetworkApi().set(networkConfiguration);
+         }
+      }.apply("Revert VirtualNetworkConfiguration"));
+
    }
 
    protected CloudService getOrCreateCloudService(final String cloudServiceName, final String location) {
