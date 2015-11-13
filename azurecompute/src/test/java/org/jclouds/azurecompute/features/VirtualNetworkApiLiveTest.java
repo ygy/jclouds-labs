@@ -30,7 +30,6 @@ import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 
-import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -40,11 +39,16 @@ public class VirtualNetworkApiLiveTest extends BaseAzureComputeApiLiveTest {
 
    private static final String DEFAULT_ADDRESS_SPACE = "10.0.0.0/20";
    private static final String DEFAULT_SUBNET_ADDRESS_SPACE = "10.0.0.0/23";
+   private List<VirtualNetworkSite> initialVirtualNetworkSite;
 
    @BeforeSuite
    @Override
    public void setup() {
       super.setup();
+
+      initialVirtualNetworkSite = AzureTestUtils.getVirtualNetworkSite(api);
+
+      virtualNetworkSite = getOrCreateVirtualNetworkSite(VIRTUAL_NETWORK_NAME, LOCATION);
 
       final List<VirtualNetworkSite> virtualNetworkSites = Lists.newArrayList(Iterables.filter(
               AzureTestUtils.getVirtualNetworkSite(api),
@@ -72,18 +76,13 @@ public class VirtualNetworkApiLiveTest extends BaseAzureComputeApiLiveTest {
    protected void tearDown() {
       super.tearDown();
 
-      final List<VirtualNetworkSite> virtualNetworkSites = Lists.newArrayList(Iterables.filter(api.
-              getVirtualNetworkApi().list(),
-              Predicates.not(new AzureTestUtils.SameVirtualNetworkSiteNamePredicate(VIRTUAL_NETWORK_NAME))));
-
+      final NetworkConfiguration networkConfiguration = NetworkConfiguration.create(NetworkConfiguration.VirtualNetworkConfiguration.create(null, initialVirtualNetworkSite));
       assertTrue(new ConflictManagementPredicate(api) {
-
          @Override
          protected String operation() {
-            return api.getVirtualNetworkApi().set(NetworkConfiguration.create(
-                    NetworkConfiguration.VirtualNetworkConfiguration.create(null, virtualNetworkSites)));
+            return api.getVirtualNetworkApi().set(networkConfiguration);
          }
-      }.apply(VIRTUAL_NETWORK_NAME));
+      }.apply("Revert VirtualNetworkConfiguration"));
    }
 
    @Test

@@ -176,7 +176,7 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Deploym
 
       final Deployment deployment = deployments.iterator().next();
       return new NodeAndInitialCredentials<Deployment>(deployment, name,
-              LoginCredentials.builder().user(loginUser).password(loginPassword).build());
+              LoginCredentials.builder().user(loginUser).password(loginPassword).authenticateSudo(true).build());
    }
 
    public static String generateIllegalStateExceptionMessage(final String operationId, final long timeout) {

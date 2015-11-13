@@ -90,7 +90,7 @@ public class AzureComputeServiceContextLiveTest extends BaseComputeServiceContex
    }
 
    @Test
-   public void testLaunchNodeAndNetwork() throws RunNodesException {
+   public void testLaunchNodeInVirtualNetwork() throws RunNodesException {
       final int rand = new Random().nextInt(999);
       final String groupName = String.format("%s%d-group-acsclt", System.getProperty("user.name"), rand);
 
@@ -123,7 +123,7 @@ public class AzureComputeServiceContextLiveTest extends BaseComputeServiceContex
    }
 
    @Test(expectedExceptions = { IllegalStateException.class })
-       public void testNotExistingStorageAccount() throws RunNodesException {
+   public void testNotExistingStorageAccount() throws RunNodesException {
       final int rand = new Random().nextInt(999);
       final String groupName = String.format("%s%d-group-acsclt", System.getProperty("user.name"), rand);
 
