@@ -32,6 +32,7 @@ import javax.inject.Singleton;
 
 import org.jclouds.azurecompute.AzureComputeApi;
 import org.jclouds.azurecompute.compute.options.AzureComputeTemplateOptions;
+import org.jclouds.azurecompute.compute.predicates.StorageServicePredicates;
 import org.jclouds.azurecompute.config.AzureComputeProperties;
 import org.jclouds.azurecompute.domain.CreateStorageServiceParams;
 import org.jclouds.azurecompute.domain.StorageService;
@@ -131,13 +132,12 @@ public class GetOrCreateStorageServiceAndVirtualNetworkThenCreateNodes
       final List<StorageService> storageServices = api.getStorageAccountApi().list();
       logger.debug("Looking for a suitable existing storage account ...");
 
-      final Predicate<StorageService> storageServicePredicate = and(notNull(),
-              new SameLocationAndCreatedStorageServicePredicate(location), new Predicate<StorageService>() {
-                 @Override
-                 public boolean apply(final StorageService input) {
-                    return input.serviceName().matches(format("^%s[a-z]{10}$", DEFAULT_STORAGE_ACCOUNT_PREFIX));
-                 }
-              });
+      final Predicate<StorageService> storageServicePredicate = and(
+              notNull(),
+              StorageServicePredicates.sameLocation(location),
+              StorageServicePredicates.status(StorageService.Status.Created),
+              StorageServicePredicates.matchesName(DEFAULT_STORAGE_ACCOUNT_PREFIX)
+      );
 
       final Optional<StorageService> storageServiceOptional = tryFind(storageServices, storageServicePredicate);
       if (storageServiceOptional.isPresent()) {
@@ -187,18 +187,4 @@ public class GetOrCreateStorageServiceAndVirtualNetworkThenCreateNodes
       return builder.toString();
    }
 
-   private static class SameLocationAndCreatedStorageServicePredicate implements Predicate<StorageService> {
-
-      private final String location;
-
-      public SameLocationAndCreatedStorageServicePredicate(final String location) {
-         this.location = location;
-      }
-
-      @Override
-      public boolean apply(final StorageService input) {
-         return input.storageServiceProperties().location().equals(location)
-                 && input.storageServiceProperties().status() == StorageService.Status.Created;
-      }
-   }
 }

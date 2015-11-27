@@ -34,6 +34,9 @@ public class AzureComputeServiceLiveTest extends BaseComputeServiceLiveTest {
    public AzureComputeServiceLiveTest() {
       super();
       provider = "azurecompute";
+      // this is 30 seconds by default, but Azure will take anyway longer because we need to wait for a non-null
+      // Deployment object to be returned: see the end of AzureComputeServiceAdapter#createNodeWithGroupEncodedIntoName
+      nonBlockDurationSeconds = 240;
    }
 
    @Override
@@ -44,14 +47,6 @@ public class AzureComputeServiceLiveTest extends BaseComputeServiceLiveTest {
    @Override
    protected void checkTagsInNodeEquals(final NodeMetadata node, final ImmutableSet<String> tags) {
       // Azure does not support tags
-   }
-
-   @Override
-   public void testOptionToNotBlock() throws Exception {
-      // this is 30 seconds by default, but Azure will take anyway longer because we need to wait for a non-null
-      // Deployment object to be returned: see the end of AzureComputeServiceAdapter#createNodeWithGroupEncodedIntoName
-      nonBlockDurationSeconds = 240;
-      super.testOptionToNotBlock();
    }
 
    @Override

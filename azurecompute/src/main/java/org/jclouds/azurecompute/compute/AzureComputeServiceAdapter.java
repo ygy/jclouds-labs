@@ -312,45 +312,32 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Deploym
       }).toList();
    }
 
-   public Deployment internalDestroyNode(final String id) {
-      Deployment deployment = null;
+   public Deployment internalDestroyNode(final String nodeId) {
 
-      for (CloudService cloudService : getCloudServicesForDeployment(id)) {
-         final List<Deployment> nodes = Lists.newArrayList();
-         retry(new Predicate<String>() {
-            @Override
-            public boolean apply(final String input) {
-               final Deployment deployment = getNode(id);
-               if (deployment != null) {
-                  nodes.add(deployment);
-               }
-               return !nodes.isEmpty();
-            }
-         }, 30 * 60, 1, SECONDS).apply(id);
+      //for (CloudService cloudService : getCloudServicesForDeployment(nodeId)) {
+         Deployment deployment = getDeploymentFromNodeId(nodeId);
 
-         if (!nodes.isEmpty()) {
-            deployment = nodes.iterator().next();
-         }
+         if (deployment == null) return null;
 
-         final String cloudServiceName = cloudService.name();
-         logger.debug("Deleting deployment(%s) of cloud service (%s)", id, cloudServiceName);
+         final String deploymentName = deployment.name();
+         logger.debug("Deleting deployment(%s) of cloud service (%s)", nodeId, deploymentName);
 
          if (!new ConflictManagementPredicate(api, operationSucceededPredicate) {
 
             @Override
             protected String operation() {
-               return api.getDeploymentApiForService(cloudServiceName).delete(id);
+               return api.getDeploymentApiForService(deploymentName).delete(nodeId);
             }
-         }.apply(id)) {
+         }.apply(nodeId)) {
             final String message = generateIllegalStateExceptionMessage(
                     "Delete deployment", azureComputeConstants.operationTimeout());
             logger.warn(message);
             throw new IllegalStateException(message);
          }
 
-         logger.debug("Deleting cloud service (%s) ...", cloudServiceName);
-         trackRequest(api.getCloudServiceApi().delete(cloudServiceName));
-         logger.debug("Cloud service (%s) deleted.", cloudServiceName);
+         logger.debug("Deleting cloud service (%s) ...", deploymentName);
+         trackRequest(api.getCloudServiceApi().delete(deploymentName));
+         logger.debug("Cloud service (%s) deleted.", deploymentName);
 
          if (deployment != null) {
             for (Role role : deployment.roleList()) {
@@ -362,7 +349,7 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Deploym
                      protected String operation() {
                         return api.getDiskApi().delete(disk.diskName());
                      }
-                  }.apply(id)) {
+                  }.apply(nodeId)) {
                      final String message = generateIllegalStateExceptionMessage(
                              "Delete disk", azureComputeConstants.operationTimeout());
                      logger.warn(message);
@@ -370,13 +357,34 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Deploym
                }
             }
          }
-      }
+      //}
       return deployment;
+   }
+
+   public Deployment getDeploymentFromNodeId(final String nodeId) {
+      final List<Deployment> nodes = Lists.newArrayList();
+      retry(new Predicate<String>() {
+         @Override
+         public boolean apply(final String input) {
+            final Deployment deployment = getNode(nodeId);
+            if (deployment != null) {
+               nodes.add(deployment);
+            }
+            return !nodes.isEmpty();
+         }
+      }, 30 * 60, 1, SECONDS).apply(nodeId);
+
+      return Iterables.getFirst(nodes, null);
    }
 
    @Override
    public void destroyNode(final String id) {
-      internalDestroyNode(id);
+      logger.debug("Destroying %s ...", id);
+      if (internalDestroyNode(id) != null) {
+         logger.debug("Destroyed %s!", id);
+      } else {
+         logger.warn("Can't destroy %s!", id);
+      }
    }
 
    @Override

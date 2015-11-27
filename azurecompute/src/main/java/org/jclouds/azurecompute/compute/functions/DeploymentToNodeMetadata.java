@@ -16,15 +16,16 @@
  */
 package org.jclouds.azurecompute.compute.functions;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
 
 import org.jclouds.azurecompute.AzureComputeApi;
+import org.jclouds.azurecompute.domain.CloudService;
 import org.jclouds.azurecompute.domain.Deployment;
 import org.jclouds.azurecompute.domain.Deployment.RoleInstance;
-import org.jclouds.azurecompute.domain.CloudService;
 import org.jclouds.collect.Memoized;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.NodeMetadataBuilder;
@@ -35,7 +36,6 @@ import org.jclouds.location.predicates.LocationPredicates;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
@@ -97,7 +97,7 @@ public class DeploymentToNodeMetadata implements Function<Deployment, NodeMetada
            RoleSizeToHardware roleSizeToHardware, Map<String, Credentials> credentialStore) {
 
       this.nodeNamingConvention = namingConvention.createWithoutPrefix();
-      this.locations = Preconditions.checkNotNull(locations, "locations");
+      this.locations = checkNotNull(locations, "locations");
       this.osImageToImage = osImageToImage;
       this.roleSizeToHardware = roleSizeToHardware;
       this.credentialStore = credentialStore;
@@ -135,7 +135,7 @@ public class DeploymentToNodeMetadata implements Function<Deployment, NodeMetada
        */
       if (from.status() != null) {
          final Optional<RoleInstance> roleInstance = tryFindFirstRoleInstanceInDeployment(from);
-         if (roleInstance.isPresent()) {
+         if (roleInstance.isPresent() && roleInstance.get().instanceStatus() != null) {
             builder.status(INSTANCESTATUS_TO_NODESTATUS.get(roleInstance.get().instanceStatus()));
          } else {
             builder.status(STATUS_TO_NODESTATUS.get(from.status()));
