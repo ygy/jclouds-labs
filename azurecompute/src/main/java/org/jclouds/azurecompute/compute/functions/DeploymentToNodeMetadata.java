@@ -140,6 +140,8 @@ public class DeploymentToNodeMetadata implements Function<Deployment, NodeMetada
          } else {
             builder.status(STATUS_TO_NODESTATUS.get(from.status()));
          }
+      } else {
+         builder.status(NodeMetadata.Status.UNRECOGNIZED);
       }
 
       final Set<String> publicIpAddresses = Sets.newLinkedHashSet();

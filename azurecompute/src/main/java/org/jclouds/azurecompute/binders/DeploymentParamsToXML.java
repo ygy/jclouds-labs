@@ -59,6 +59,7 @@ public final class DeploymentParamsToXML implements Binder {
                     .e("JoinDomain").t(params.name()).up()
                     .up() // Domain Join
                     .e("StoredCertificateSettings").up()
+                    .e("AdminUsername").t(params.username()).up()
                     .up(); // Windows ConfigurationSet
          } else if (params.os() == OSImage.Type.LINUX) {
             XMLBuilder configBuilder = builder.e("ConfigurationSet"); // Linux
