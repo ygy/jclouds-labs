@@ -71,6 +71,7 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Deploym
    private static final String DEFAULT_LOGIN_USER = "jclouds";
 
    private static final String DEFAULT_LOGIN_PASSWORD = "Azur3Compute!";
+   public static final String POST_SHUTDOWN_ACTION = "StoppedDeallocated";
 
    @Resource
    @Named(ComputeServiceConstants.COMPUTE_LOGGER)
@@ -175,14 +176,12 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Deploym
       }
 
       final Deployment deployment = deployments.iterator().next();
+
+      // check if the role inside the deployment is ready
+      checkRoleStatusInDeployment(name, deployment);
+
       return new NodeAndInitialCredentials<Deployment>(deployment, name,
               LoginCredentials.builder().user(loginUser).password(loginPassword).authenticateSudo(true).build());
-   }
-
-   public static String generateIllegalStateExceptionMessage(final String operationId, final long timeout) {
-      final String warnMessage = format("%s has not been completed within %sms.", operationId, timeout);
-      return format("%s. Please, try by increasing `%s` and try again",
-              warnMessage, AzureComputeProperties.OPERATION_TIMEOUT);
    }
 
    @Override
@@ -315,13 +314,15 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Deploym
    public Deployment internalDestroyNode(final String nodeId) {
 
       //for (CloudService cloudService : getCloudServicesForDeployment(nodeId)) {
-         Deployment deployment = getDeploymentFromNodeId(nodeId);
+      Deployment deployment = getDeploymentFromNodeId(nodeId);
 
-         if (deployment == null) return null;
+      if (deployment == null) return null;
 
-         final String deploymentName = deployment.name();
-         logger.debug("Deleting deployment(%s) of cloud service (%s)", nodeId, deploymentName);
+      final String deploymentName = deployment.name();
+      logger.debug("Deleting deployment(%s) of cloud service (%s)", nodeId, deploymentName);
 
+      deleteDeployment(deploymentName, nodeId);
+      /*
          if (!new ConflictManagementPredicate(api, operationSucceededPredicate) {
 
             @Override
@@ -334,13 +335,15 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Deploym
             logger.warn(message);
             throw new IllegalStateException(message);
          }
-
+      */
          logger.debug("Deleting cloud service (%s) ...", deploymentName);
          trackRequest(api.getCloudServiceApi().delete(deploymentName));
          logger.debug("Cloud service (%s) deleted.", deploymentName);
 
          if (deployment != null) {
             for (Role role : deployment.roleList()) {
+               trackRequest(api.getVirtualMachineApiForDeploymentInService(deploymentName, role.roleName()).shutdown(nodeId, POST_SHUTDOWN_ACTION));
+
                final Role.OSVirtualHardDisk disk = role.osVirtualHardDisk();
                if (disk != null) {
                   if (!new ConflictManagementPredicate(api, operationSucceededPredicate) {
@@ -412,7 +415,7 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Deploym
       final CloudService cloudService = api.getCloudServiceApi().get(id);
       if (cloudService != null) {
          logger.debug("Suspending %s ...", id);
-         trackRequest(api.getVirtualMachineApiForDeploymentInService(id, cloudService.name()).shutdown(id));
+         trackRequest(api.getVirtualMachineApiForDeploymentInService(id, cloudService.name()).shutdown(id, POST_SHUTDOWN_ACTION));
          logger.debug("Suspended %s", id);
       }
    }
@@ -477,4 +480,47 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Deploym
          throw new IllegalStateException(deleteMessage);
       }
    }
+
+
+   private void checkRoleStatusInDeployment(final String name, Deployment deployment) {
+      if (!retry(new Predicate<Deployment>() {
+
+         @Override
+         public boolean apply(Deployment deployment) {
+            deployment = api.getDeploymentApiForService(deployment.name()).get(name);
+            if (deployment.roleInstanceList() == null || deployment.roleInstanceList().isEmpty()) return false;
+            return Iterables.all(deployment.roleInstanceList(), new Predicate<RoleInstance>() {
+               @Override
+               public boolean apply(RoleInstance input) {
+                  if (input.instanceStatus() == Deployment.InstanceStatus.PROVISIONING_FAILED) {
+                     final String message = format("Deployment %s is in provisioning failed status, so it will be destroyed.", name);
+                     logger.warn(message);
+
+                     api.getDeploymentApiForService(name).delete(name);
+                     api.getCloudServiceApi().delete(name);
+
+                     throw new IllegalStateException(message);
+                  }
+                  return input.instanceStatus() == Deployment.InstanceStatus.READY_ROLE;
+               }
+            });
+         }
+      }, azureComputeConstants.operationTimeout(), 1, SECONDS).apply(deployment)) {
+         final String message = format("Role %s has not reached the READY_ROLE within %sms so it will be destroyed.",
+                 deployment.name(), azureComputeConstants.operationTimeout());
+         logger.warn(message);
+
+         api.getDeploymentApiForService(name).delete(name);
+         api.getCloudServiceApi().delete(name);
+
+         throw new IllegalStateException(message);
+      }
+   }
+
+   public static String generateIllegalStateExceptionMessage(final String operationId, final long timeout) {
+      final String warnMessage = format("%s has not been completed within %sms.", operationId, timeout);
+      return format("%s. Please, try by increasing `%s` and try again",
+              warnMessage, AzureComputeProperties.OPERATION_TIMEOUT);
+   }
+
 }

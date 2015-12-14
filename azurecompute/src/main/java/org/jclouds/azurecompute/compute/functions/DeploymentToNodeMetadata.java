@@ -53,6 +53,7 @@ public class DeploymentToNodeMetadata implements Function<Deployment, NodeMetada
            put(Deployment.InstanceStatus.FAILED_STARTING_ROLE, NodeMetadata.Status.ERROR).
            put(Deployment.InstanceStatus.FAILED_STARTING_VM, NodeMetadata.Status.ERROR).
            put(Deployment.InstanceStatus.PREPARING, NodeMetadata.Status.PENDING).
+           put(Deployment.InstanceStatus.PROVISIONING, NodeMetadata.Status.PENDING).
            put(Deployment.InstanceStatus.READY_ROLE, NodeMetadata.Status.RUNNING).
            put(Deployment.InstanceStatus.RESTARTING_ROLE, NodeMetadata.Status.PENDING).
            put(Deployment.InstanceStatus.STARTING_ROLE, NodeMetadata.Status.PENDING).

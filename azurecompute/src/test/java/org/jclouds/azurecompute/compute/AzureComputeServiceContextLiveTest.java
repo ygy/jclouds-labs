@@ -52,9 +52,29 @@ public class AzureComputeServiceContextLiveTest extends BaseComputeServiceContex
       provider = "azurecompute";
    }
 
-   /**
-    * @throws RunNodesException
-    */
+
+   @Test
+   public void testWindowsNode() throws RunNodesException {
+      final String groupName = String.format("win-%s", System.getProperty("user.name"));
+
+      final TemplateBuilder templateBuilder = view.getComputeService().templateBuilder();
+      templateBuilder.imageId("3a50f22b388a4ff7ab41029918570fa6__Windows-Server-2012-Essentials-20141204-enus");
+      templateBuilder.hardwareId("BASIC_A0");
+      templateBuilder.locationId(BaseAzureComputeApiLiveTest.LOCATION);
+      final Template template = templateBuilder.build();
+
+      // test passing custom options
+      final AzureComputeTemplateOptions options = template.getOptions().as(AzureComputeTemplateOptions.class);
+      options.inboundPorts(22);
+
+      try {
+         Set<? extends NodeMetadata> nodes = view.getComputeService().createNodesInGroup(groupName, 1, template);
+         assertThat(nodes).hasSize(1);
+      } finally {
+         view.getComputeService().destroyNodesMatching(inGroup(groupName));
+      }
+   }
+
    @Test
    public void testLaunchNodes() throws RunNodesException {
       final int rand = new Random().nextInt(999);
