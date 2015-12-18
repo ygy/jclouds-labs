@@ -58,14 +58,15 @@ public class AzureComputeServiceContextLiveTest extends BaseComputeServiceContex
       final String groupName = String.format("win-%s", System.getProperty("user.name"));
 
       final TemplateBuilder templateBuilder = view.getComputeService().templateBuilder();
-      templateBuilder.imageId("3a50f22b388a4ff7ab41029918570fa6__Windows-Server-2012-Essentials-20141204-enus");
-      templateBuilder.hardwareId("BASIC_A0");
+      //templateBuilder.imageId("3a50f22b388a4ff7ab41029918570fa6__Windows-Server-2012-Essentials-20141204-enus");
+      templateBuilder.imageId("a699494373c04fc0bc8f2bb1389d6106__Nano_TP4_Azure_20151118_8GB.vhd");
+      templateBuilder.hardwareId("BASIC_A2");
       templateBuilder.locationId(BaseAzureComputeApiLiveTest.LOCATION);
       final Template template = templateBuilder.build();
 
       // test passing custom options
       final AzureComputeTemplateOptions options = template.getOptions().as(AzureComputeTemplateOptions.class);
-      options.inboundPorts(22);
+      options.inboundPorts(5985);
 
       try {
          Set<? extends NodeMetadata> nodes = view.getComputeService().createNodesInGroup(groupName, 1, template);
