@@ -321,7 +321,6 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Deploym
       final String deploymentName = deployment.name();
       logger.debug("Deleting deployment(%s) of cloud service (%s)", nodeId, deploymentName);
 
-      deleteDeployment(deploymentName, nodeId);
       /*
          if (!new ConflictManagementPredicate(api, operationSucceededPredicate) {
 
@@ -336,14 +335,19 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Deploym
             throw new IllegalStateException(message);
          }
       */
-         logger.debug("Deleting cloud service (%s) ...", deploymentName);
-         trackRequest(api.getCloudServiceApi().delete(deploymentName));
-         logger.debug("Cloud service (%s) deleted.", deploymentName);
 
          if (deployment != null) {
             for (Role role : deployment.roleList()) {
                trackRequest(api.getVirtualMachineApiForDeploymentInService(deploymentName, role.roleName()).shutdown(nodeId, POST_SHUTDOWN_ACTION));
-
+            }
+            
+            deleteDeployment(deploymentName, nodeId);
+            
+            logger.debug("Deleting cloud service (%s) ...", deploymentName);
+            trackRequest(api.getCloudServiceApi().delete(deploymentName));
+            logger.debug("Cloud service (%s) deleted.", deploymentName);
+            
+            for (Role role : deployment.roleList()) {
                final Role.OSVirtualHardDisk disk = role.osVirtualHardDisk();
                if (disk != null) {
                   if (!new ConflictManagementPredicate(api, operationSucceededPredicate) {
