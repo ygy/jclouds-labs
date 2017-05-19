@@ -23,8 +23,6 @@ import org.jclouds.javax.annotation.Nullable;
 import org.jclouds.json.SerializedNames;
 
 import java.util.List;
-import java.util.Map;
-import com.google.common.collect.ImmutableMap;
 
 @AutoValue
 public abstract class OSProfile {
@@ -91,15 +89,57 @@ public abstract class OSProfile {
 
       @AutoValue
       public abstract static class WinRM {
+          public enum ListenerProtocol {
+
+              HTTP("http"),
+              HTTPS("https");
+
+              private String value;
+
+              ListenerProtocol(String value) {
+                 this.value = value;
+              }
+
+              public static ListenerProtocol fromString(String value) {
+                 ListenerProtocol[] items = ListenerProtocol.values();
+                 for (ListenerProtocol item : items) {
+                    if (item.toString().equalsIgnoreCase(value)) {
+                       return item;
+                    }
+                 }
+                 throw new IllegalArgumentException("Cannot find an enum for " + value);
+              }
+
+              @Override
+              public String toString() {
+                 return this.value;
+              }
+           }
+
+          @AutoValue
+          public abstract static class ProtocolListener {
+
+             public abstract String protocol();
+
+             @Nullable
+             public abstract String certificateUrl();
+
+             @SerializedNames({"protocol", "certificateUrl"})
+             public static ProtocolListener create(final String protocol, final String certificateUrl) {
+
+                return new AutoValue_OSProfile_WindowsConfiguration_WinRM_ProtocolListener(
+                        protocol, certificateUrl);
+             }
+          }
 
          /**
           * Map of different settings
           */
-         public abstract Map<String, String> listeners();
+         public abstract List<ProtocolListener> listeners();
 
          @SerializedNames({"listeners"})
-         public static WinRM create(final Map<String, String> listeners) {
-            return new AutoValue_OSProfile_WindowsConfiguration_WinRM(listeners == null ? ImmutableMap.<String, String>of() : ImmutableMap.copyOf(listeners));
+         public static WinRM create(final List<ProtocolListener> listeners) {
+            return new AutoValue_OSProfile_WindowsConfiguration_WinRM(listeners == null ? ImmutableList.<ProtocolListener>of() : ImmutableList.copyOf(listeners));
          }
       }
 
@@ -146,20 +186,13 @@ public abstract class OSProfile {
        */
       public abstract boolean enableAutomaticUpdates();
 
-      /**
-       * list of certificates
-       */
-      @Nullable
-      public abstract List<String> secrets();
-
-      @SerializedNames({"provisionVMAgent", "winRM", "additionalUnattendContent", "enableAutomaticUpdates",
-              "secrets"})
+      @SerializedNames({"provisionVMAgent", "winRM", "additionalUnattendContent", "enableAutomaticUpdates"})
       public static WindowsConfiguration create(final boolean provisionVMAgent, final WinRM winRM,
                                                 final AdditionalUnattendContent additionalUnattendContent,
-                                                final boolean enableAutomaticUpdates, final List<String> secrets) {
+                                                final boolean enableAutomaticUpdates) {
 
          return new AutoValue_OSProfile_WindowsConfiguration(provisionVMAgent, winRM,
-                 additionalUnattendContent, enableAutomaticUpdates, secrets == null ? null : ImmutableList.copyOf(secrets));
+                 additionalUnattendContent, enableAutomaticUpdates);
       }
    }
 
@@ -199,11 +232,17 @@ public abstract class OSProfile {
    @Nullable
    public abstract WindowsConfiguration windowsConfiguration();
 
+   /**
+    * list of certificates
+    */
+   @Nullable
+   public abstract List<VaultSecretGroup> secrets();
+
    @SerializedNames({"computerName", "adminUsername", "adminPassword", "customData", "linuxConfiguration",
-           "windowsConfiguration"})
+           "windowsConfiguration", "secrets"})
    public static OSProfile create(final String computerName, final String adminUsername, final String adminPassword,
                                   final String customData, final LinuxConfiguration linuxConfiguration,
-                                  final WindowsConfiguration windowsConfiguration) {
+                                  final WindowsConfiguration windowsConfiguration, final List<VaultSecretGroup> secrets) {
       return builder()
               .computerName(computerName)
               .adminUsername(adminUsername)
@@ -211,6 +250,7 @@ public abstract class OSProfile {
               .customData(customData)
               .linuxConfiguration(linuxConfiguration)
               .windowsConfiguration(windowsConfiguration)
+              .secrets(secrets)
               .build();
    }
    
@@ -233,6 +273,8 @@ public abstract class OSProfile {
       public abstract Builder linuxConfiguration(LinuxConfiguration linuxConfiguration);
 
       public abstract Builder windowsConfiguration(WindowsConfiguration windowsConfiguration);
+
+      public abstract Builder secrets(List<VaultSecretGroup> secrets);
 
       public abstract OSProfile build();
    }

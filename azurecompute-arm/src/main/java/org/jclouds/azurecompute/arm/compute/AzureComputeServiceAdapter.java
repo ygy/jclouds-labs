@@ -66,6 +66,8 @@ import org.jclouds.azurecompute.arm.domain.NetworkInterfaceCardProperties;
 import org.jclouds.azurecompute.arm.domain.NetworkProfile;
 import org.jclouds.azurecompute.arm.domain.OSDisk;
 import org.jclouds.azurecompute.arm.domain.OSProfile;
+import org.jclouds.azurecompute.arm.domain.OSProfile.WindowsConfiguration.WinRM.ListenerProtocol;
+import org.jclouds.azurecompute.arm.domain.OSProfile.WindowsConfiguration.WinRM.ProtocolListener;
 import org.jclouds.azurecompute.arm.domain.Offer;
 import org.jclouds.azurecompute.arm.domain.Plan;
 import org.jclouds.azurecompute.arm.domain.Provisionable;
@@ -79,6 +81,8 @@ import org.jclouds.azurecompute.arm.domain.StorageProfile;
 import org.jclouds.azurecompute.arm.domain.VMHardware;
 import org.jclouds.azurecompute.arm.domain.VMImage;
 import org.jclouds.azurecompute.arm.domain.VMSize;
+import org.jclouds.azurecompute.arm.domain.VaultCertificate;
+import org.jclouds.azurecompute.arm.domain.VaultSecretGroup;
 import org.jclouds.azurecompute.arm.domain.Version;
 import org.jclouds.azurecompute.arm.domain.VirtualMachine;
 import org.jclouds.azurecompute.arm.domain.VirtualMachineProperties;
@@ -390,6 +394,31 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
          builder.linuxConfiguration(linuxConfiguration);
       }
 
+
+      AzureTemplateOptions azureTemplateOptions = template.getOptions().as(AzureTemplateOptions.class);
+
+      if (!azureTemplateOptions.getListeners().isEmpty() &&
+              OsFamily.WINDOWS.equals(template.getImage().getOperatingSystem().getFamily())) {
+
+            for (ProtocolListener protocolListener : azureTemplateOptions.getListeners()) {
+                if (protocolListener.equals(ListenerProtocol.HTTPS)) {
+                    VaultCertificate vaultCertificate = VaultCertificate
+                            .create(azureTemplateOptions.getCertificateUrl(), "");
+                    List<VaultSecretGroup> secrets = ImmutableList.of(VaultSecretGroup.create(
+                            VaultSecretGroup.SourceVault.create(getIdForSourceVaultByResourceGroup(
+                                    azureTemplateOptions.getResourceGroup(), azureTemplateOptions.getVaultName())),
+                            ImmutableList.of(vaultCertificate)));
+                    builder.secrets(secrets);
+                }
+            }
+
+            OSProfile.WindowsConfiguration.WinRM winRm = OSProfile.WindowsConfiguration.WinRM
+                    .create(azureTemplateOptions.getListeners());
+            OSProfile.WindowsConfiguration windowsConfiguration = OSProfile.WindowsConfiguration.create(true, winRm,
+                    null, true);
+            builder.windowsConfiguration(windowsConfiguration);
+      }
+
       return builder.build();
    }
 
@@ -527,4 +556,8 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
       return availabilitySet != null ? IdReference.create(availabilitySet.id()) : null;
    }
 
+   private String getIdForSourceVaultByResourceGroup(String resourceGroupName, String vaultName) {
+       ResourceGroup resourceGroup = api.getResourceGroupApi().get(resourceGroupName);
+       return String.format("%s/providers/Microsoft.KeyVault/vaults/%s", resourceGroup.id(), vaultName);
+   }
 }
