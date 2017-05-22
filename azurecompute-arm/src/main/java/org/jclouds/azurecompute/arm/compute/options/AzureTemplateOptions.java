@@ -257,5 +257,13 @@ public class AzureTemplateOptions extends TemplateOptions implements Cloneable {
          AzureTemplateOptions options = new AzureTemplateOptions();
          return options.windowsConfiguration(windowsConfiguration);
       }
+
+      /**
+       * @see AzureTemplateOptions#secrets(Secrets)
+       */
+      public static AzureTemplateOptions secrets(Secrets secrets) {
+         AzureTemplateOptions options = new AzureTemplateOptions();
+         return options.secrets(secrets);
+      }      
    }
 }

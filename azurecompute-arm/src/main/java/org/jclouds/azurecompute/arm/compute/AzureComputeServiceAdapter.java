@@ -400,28 +400,6 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
       if (azureTemplateOptions.getSecrets() != null) {
           builder.secrets(azureTemplateOptions.getSecrets());
       }
-//      if (!azureTemplateOptions.getListeners().isEmpty() &&
-//              OsFamily.WINDOWS.equals(template.getImage().getOperatingSystem().getFamily())) {
-//
-//          for (Map.Entry<String, String> listener : azureTemplateOptions.getListeners().entrySet()) {
-//              if (listener.getKey().equals("protocol")  && listener.getValue().equals(ListenerProtocol.HTTPS.toString()) {
-//            
-//                VaultCertificate vaultCertificate = VaultCertificate
-//                        .create(azureTemplateOptions.getCertificateUrl(), "");
-//                List<VaultSecretGroup> secrets = ImmutableList.of(VaultSecretGroup.create(
-//                        VaultSecretGroup.SourceVault.create(getIdForSourceVaultByResourceGroup(
-//                                azureTemplateOptions.getResourceGroup(), azureTemplateOptions.getVaultName())),
-//                        ImmutableList.of(vaultCertificate)));
-//                builder.secrets(secrets);
-//            }
-//
-//
-//            OSProfile.WindowsConfiguration.WinRM winRm = OSProfile.WindowsConfiguration.WinRM
-//                    .create(azureTemplateOptions.getListeners());
-//            OSProfile.WindowsConfiguration windowsConfiguration = OSProfile.WindowsConfiguration.create(true, winRm,
-//                    null, true);
-//            builder.windowsConfiguration(windowsConfiguration);
-//      }
 
       return builder.build();
    }
