@@ -16,17 +16,18 @@
  */
 package org.jclouds.azurecompute.arm.compute.options;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.List;
 
 import org.jclouds.azurecompute.arm.domain.AvailabilitySet;
 import org.jclouds.azurecompute.arm.domain.DataDisk;
-import org.jclouds.azurecompute.arm.domain.OSProfile.WindowsConfiguration.WinRM.ProtocolListener;
+import org.jclouds.azurecompute.arm.domain.OSProfile.WindowsConfiguration;
+import org.jclouds.azurecompute.arm.domain.Secrets;
 import org.jclouds.compute.options.TemplateOptions;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Azure ARM custom options
@@ -38,9 +39,8 @@ public class AzureTemplateOptions extends TemplateOptions implements Cloneable {
    private List<DataDisk> dataDisks = ImmutableList.of();
    private String resourceGroup;
    private List<IpOptions> ipOptions = ImmutableList.of();
-   private List<ProtocolListener> listeners = ImmutableList.of();
-   private String certificateUrl;
-   private String vaultName;
+   private WindowsConfiguration windowsConfiguration;
+   private Secrets secrets;
    
    /**
     * Sets the availability set where the nodes will be configured. If it does
@@ -97,44 +97,35 @@ public class AzureTemplateOptions extends TemplateOptions implements Cloneable {
    }
 
    /**
-    * Sets the WinRM protocol listeners
-    */
-   public AzureTemplateOptions listeners(List<ProtocolListener> listeners) {
-       this.listeners = listeners;
-       return this;
-   }
-
-   /**
-    * Url of the certificate with version in KeyVault
-    */
-   public AzureTemplateOptions certificateUrl(String certificateUrl) {
-      this.certificateUrl = certificateUrl;
-      return this;
-   }
-
-   /**
-    * Name of the KeyVault
-    */
-   public AzureTemplateOptions vaultName(String vaultName) {
-      this.vaultName = vaultName;
-      return this;
-   }
-
-   /**
     * @see {@link AzureTemplateOptions#ipOptions(Iterable)
     */
    public AzureTemplateOptions ipOptions(IpOptions... ipOptions) {
       return ipOptions(ImmutableList.copyOf(checkNotNull(ipOptions, "ipOptions")));
    }
-   
+
+   /**
+    * WinRm configuration
+    */
+   public AzureTemplateOptions windowsConfiguration(WindowsConfiguration windowsConfiguration) {
+       this.windowsConfiguration = windowsConfiguration;
+       return this;
+    }
+
+   /**
+    * Secrets configuration
+    */
+   public AzureTemplateOptions secrets(Secrets secrets) {
+       this.secrets = secrets;
+       return this;
+    }
+
    public AvailabilitySet getAvailabilitySet() { return availabilitySet; }
    public String getAvailabilitySetName() { return availabilitySetName; }
    public List<DataDisk> getDataDisks() { return dataDisks; }
    public String getResourceGroup() { return resourceGroup; }
    public List<IpOptions> getIpOptions() { return ipOptions; }
-   public List<ProtocolListener> getListeners() { return listeners; }
-   public String getVaultName() { return vaultName; }
-   public String getCertificateUrl() { return certificateUrl; }
+   public WindowsConfiguration getWindowsConfiguration() { return windowsConfiguration; }
+   public Secrets getSecrets() { return secrets; }
 
    @Override
    public AzureTemplateOptions clone() {
@@ -153,9 +144,8 @@ public class AzureTemplateOptions extends TemplateOptions implements Cloneable {
          eTo.dataDisks(dataDisks);
          eTo.resourceGroup(resourceGroup);
          eTo.ipOptions(ipOptions);
-         eTo.listeners(listeners);
-         eTo.certificateUrl(certificateUrl);
-         eTo.vaultName(vaultName);
+         eTo.windowsConfiguration(windowsConfiguration);
+         eTo.secrets(secrets);
       }
    }
 
@@ -172,15 +162,14 @@ public class AzureTemplateOptions extends TemplateOptions implements Cloneable {
             Objects.equal(availabilitySet, that.availabilitySet) &&
             Objects.equal(dataDisks, that.dataDisks) &&
             Objects.equal(ipOptions, that.ipOptions) &&
-            Objects.equal(listeners, that.listeners) &&
-            Objects.equal(certificateUrl, that.certificateUrl) &&
-            Objects.equal(vaultName, that.vaultName);
+            Objects.equal(windowsConfiguration, that.windowsConfiguration) &&
+            Objects.equal(secrets, that.secrets);
    }
 
    @Override
    public int hashCode() {
       return Objects.hashCode(availabilitySet, availabilitySetName, dataDisks,
-            resourceGroup, ipOptions, listeners, certificateUrl, vaultName);
+            resourceGroup, ipOptions);
    }
 
    @Override
@@ -196,12 +185,10 @@ public class AzureTemplateOptions extends TemplateOptions implements Cloneable {
          toString.add("resourceGroup", resourceGroup);
       if (!ipOptions.isEmpty())
          toString.add("ipOptions", ipOptions);
-      if (!listeners.isEmpty())
-          toString.add("listeners", listeners);
-      if (certificateUrl != null)
-          toString.add("certificateUrl", certificateUrl);
-      if (vaultName != null)
-          toString.add("vaultName", vaultName);
+      if (windowsConfiguration != null)
+          toString.add("windowsConfiguration", windowsConfiguration);
+      if (secrets != null)
+          toString.add("secrets", secrets);
       return toString;
    }
 
@@ -264,27 +251,11 @@ public class AzureTemplateOptions extends TemplateOptions implements Cloneable {
       }
 
       /**
-       * @see AzureTemplateOptions#listeners(List)
+       * @see AzureTemplateOptions#windowsConfiguration(WindowsConfiguration)
        */
-      public static AzureTemplateOptions listeners(List<ProtocolListener> listeners) {
+      public static AzureTemplateOptions windowsConfiguration(WindowsConfiguration windowsConfiguration) {
          AzureTemplateOptions options = new AzureTemplateOptions();
-         return options.listeners(listeners);
-      }
-
-      /**
-       * @see AzureTemplateOptions#certificateUrl(String)
-       */
-      public static AzureTemplateOptions certificateUrl(String certificateUrl) {
-         AzureTemplateOptions options = new AzureTemplateOptions();
-         return options.certificateUrl(certificateUrl);
-      }
-
-      /**
-       * @see AzureTemplateOptions#vaultName(String)
-       */
-      public static AzureTemplateOptions listeners(String vaultName) {
-         AzureTemplateOptions options = new AzureTemplateOptions();
-         return options.vaultName(vaultName);
+         return options.windowsConfiguration(windowsConfiguration);
       }
    }
 }

@@ -25,7 +25,7 @@ import java.util.List;
  * Group of certificates stored in one and the same KeyVault
  */
 @AutoValue
-public abstract class VaultSecretGroup {
+public abstract class Secrets {
 
     @AutoValue
     public abstract static class SourceVault {
@@ -34,7 +34,7 @@ public abstract class VaultSecretGroup {
 
         @SerializedNames({"id"})
         public static SourceVault create(final String id) {
-            return new AutoValue_VaultSecretGroup_SourceVault(id);
+            return new AutoValue_Secrets_SourceVault(id);
         }
     }
 
@@ -49,7 +49,7 @@ public abstract class VaultSecretGroup {
     public abstract List<VaultCertificate> vaultCertificates();
 
     @SerializedNames({"sourceVault", "vaultCertificates"})
-    public static VaultSecretGroup create(final SourceVault sourceVault, final List<VaultCertificate> vaultCertificates) {
-       return new AutoValue_VaultSecretGroup(sourceVault, vaultCertificates);
+    public static Secrets create(final SourceVault sourceVault, final List<VaultCertificate> vaultCertificates) {
+       return new AutoValue_Secrets(sourceVault, vaultCertificates);
     }
 }

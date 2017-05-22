@@ -41,7 +41,6 @@ import org.jclouds.azurecompute.arm.domain.Plan;
 import org.jclouds.azurecompute.arm.domain.Status;
 import org.jclouds.azurecompute.arm.domain.StorageProfile;
 import org.jclouds.azurecompute.arm.domain.VHD;
-import org.jclouds.azurecompute.arm.domain.VaultSecretGroup;
 import org.jclouds.azurecompute.arm.domain.VirtualMachine;
 import org.jclouds.azurecompute.arm.domain.VirtualMachineInstance;
 import org.jclouds.azurecompute.arm.domain.VirtualMachineProperties;
@@ -129,7 +128,7 @@ public class VirtualMachineApiMockTest extends BaseAzureComputeApiMockTest {
                   + "\"storageProfile\":{\"imageReference\":{\"publisher\":\"publisher\",\"offer\":\"offer\",\"sku\":\"sku\",\"version\":\"ver\"},"
                   + "\"osDisk\":{\"osType\":\"Windows\",\"name\":\"windowsmachine\","
                   + "\"vhd\":{\"uri\":\"https://groupname2760.blob.core.windows.net/vhds/windowsmachine201624102936.vhd\"},\"caching\":\"ReadWrite\",\"createOption\":\"FromImage\"},\"dataDisks\":[]},"
-                  + "\"osProfile\":{\"computerName\":\"windowsmachine\",\"adminUsername\":\"azureuser\",\"windowsConfiguration\":{\"provisionVMAgent\":false,\"enableAutomaticUpdates\":true},\"secrets\":[]},"
+                  + "\"osProfile\":{\"computerName\":\"windowsmachine\",\"adminUsername\":\"azureuser\",\"windowsConfiguration\":{\"provisionVMAgent\":false,\"enableAutomaticUpdates\":true}},"
                   + "\"networkProfile\":{\"networkInterfaces\":[{\"id\":\"/subscriptions/SUBSCRIPTIONID/resourceGroups/groupname/providers/Microsoft.Network/networkInterfaces/windowsmachine167\"}]},"
                   + "\"diagnosticsProfile\":{\"bootDiagnostics\":{\"enabled\":true,\"storageUri\":\"https://groupname2760.blob.core.windows.net/\"}},\"provisioningState\":\"CREATING\"},"
                   + "\"plan\":{\"name\":\"deadline-slave-7-2\",\"publisher\":\"thinkboxsoftware\",\"product\":\"deadline7-2\"}}");
@@ -152,7 +151,7 @@ public class VirtualMachineApiMockTest extends BaseAzureComputeApiMockTest {
                   + "\"storageProfile\":{\"imageReference\":{\"publisher\":\"publisher\",\"offer\":\"offer\",\"sku\":\"sku\",\"version\":\"ver\"},"
                   + "\"osDisk\":{\"osType\":\"Windows\",\"name\":\"windowsmachine\","
                   + "\"vhd\":{\"uri\":\"https://groupname2760.blob.core.windows.net/vhds/windowsmachine201624102936.vhd\"},\"caching\":\"ReadWrite\",\"createOption\":\"FromImage\"},\"dataDisks\":[]},"
-                  + "\"osProfile\":{\"computerName\":\"windowsmachine\",\"adminUsername\":\"azureuser\",\"windowsConfiguration\":{\"provisionVMAgent\":false,\"enableAutomaticUpdates\":true},\"secrets\":[]},"
+                  + "\"osProfile\":{\"computerName\":\"windowsmachine\",\"adminUsername\":\"azureuser\",\"windowsConfiguration\":{\"provisionVMAgent\":false,\"enableAutomaticUpdates\":true}},"
                   + "\"networkProfile\":{\"networkInterfaces\":[{\"id\":\"/subscriptions/SUBSCRIPTIONID/resourceGroups/groupname/providers/Microsoft.Network/networkInterfaces/windowsmachine167\"}]},"
                   + "\"diagnosticsProfile\":{\"bootDiagnostics\":{\"enabled\":true,\"storageUri\":\"https://groupname2760.blob.core.windows.net/\"}},\"provisioningState\":\"CREATING\"}}");
    }
@@ -256,8 +255,8 @@ public class VirtualMachineApiMockTest extends BaseAzureComputeApiMockTest {
       OSDisk osDisk = OSDisk.create("Windows", "windowsmachine", vhd, "ReadWrite", "FromImage", null, null, null);
       StorageProfile storageProfile = StorageProfile.create(imgRef, osDisk, dataDisks);
       OSProfile.WindowsConfiguration windowsConfig = OSProfile.WindowsConfiguration.create(false, null, null, true);
-      List<VaultSecretGroup> secrets =  new ArrayList<VaultSecretGroup>();
-      OSProfile osProfile = OSProfile.create("windowsmachine", "azureuser", null, null, null, windowsConfig, secrets);
+      //List<Secrets> secrets =  new ArrayList<Secrets>();
+      OSProfile osProfile = OSProfile.create("windowsmachine", "azureuser", null, null, null, windowsConfig, null);
       NetworkInterface networkInterface = NetworkInterface.create("/subscriptions/SUBSCRIPTIONID"
             + "/resourceGroups/groupname/providers/Microsoft.Network/networkInterfaces/" + "windowsmachine167", null);
       List<NetworkInterface> networkInterfaces = new ArrayList<NetworkInterface>();

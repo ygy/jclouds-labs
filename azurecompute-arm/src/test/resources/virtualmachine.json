@@ -29,7 +29,7 @@
         "provisionVMAgent": false,
         "enableAutomaticUpdates": true
       },
-      "secrets": []
+      "secrets": {}
     },
     "networkProfile": {"networkInterfaces":[{"id":"/subscriptions/SUBSCRIPTIONID/resourceGroups/groupname/providers/Microsoft.Network/networkInterfaces/windowsmachine167"}]},
     "diagnosticsProfile": {

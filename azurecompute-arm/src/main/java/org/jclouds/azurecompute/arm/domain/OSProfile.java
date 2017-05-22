@@ -16,13 +16,13 @@
  */
 package org.jclouds.azurecompute.arm.domain;
 
-import com.google.auto.value.AutoValue;
-import com.google.common.collect.ImmutableList;
+import java.util.List;
 
 import org.jclouds.javax.annotation.Nullable;
 import org.jclouds.json.SerializedNames;
 
-import java.util.List;
+import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
 
 @AutoValue
 public abstract class OSProfile {
@@ -233,16 +233,16 @@ public abstract class OSProfile {
    public abstract WindowsConfiguration windowsConfiguration();
 
    /**
-    * list of certificates
+    * The Secrets configuration of the VM
     */
    @Nullable
-   public abstract List<VaultSecretGroup> secrets();
+   public abstract Secrets secrets();
 
    @SerializedNames({"computerName", "adminUsername", "adminPassword", "customData", "linuxConfiguration",
            "windowsConfiguration", "secrets"})
    public static OSProfile create(final String computerName, final String adminUsername, final String adminPassword,
                                   final String customData, final LinuxConfiguration linuxConfiguration,
-                                  final WindowsConfiguration windowsConfiguration, final List<VaultSecretGroup> secrets) {
+                                  final WindowsConfiguration windowsConfiguration, final Secrets secrets) {
       return builder()
               .computerName(computerName)
               .adminUsername(adminUsername)
@@ -274,7 +274,7 @@ public abstract class OSProfile {
 
       public abstract Builder windowsConfiguration(WindowsConfiguration windowsConfiguration);
 
-      public abstract Builder secrets(List<VaultSecretGroup> secrets);
+      public abstract Builder secrets(Secrets secrets);
 
       public abstract OSProfile build();
    }

@@ -31,7 +31,7 @@
             "provisionVMAgent": false,
             "enableAutomaticUpdates": true
           },
-          "secrets": []
+          "secrets": {}
         },
         "networkProfile": {
           "networkInterfaces": [
