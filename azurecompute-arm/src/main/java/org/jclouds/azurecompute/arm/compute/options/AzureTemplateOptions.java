@@ -40,7 +40,7 @@ public class AzureTemplateOptions extends TemplateOptions implements Cloneable {
    private String resourceGroup;
    private List<IpOptions> ipOptions = ImmutableList.of();
    private WindowsConfiguration windowsConfiguration;
-   private Secrets secrets;
+   private List<Secrets> secrets;
    
    /**
     * Sets the availability set where the nodes will be configured. If it does
@@ -114,8 +114,8 @@ public class AzureTemplateOptions extends TemplateOptions implements Cloneable {
    /**
     * Secrets configuration
     */
-   public AzureTemplateOptions secrets(Secrets secrets) {
-       this.secrets = secrets;
+   public AzureTemplateOptions secrets(Iterable<? extends Secrets> secrets) {
+       this.secrets = (secrets == null) ? null : ImmutableList.copyOf(secrets);
        return this;
     }
 
@@ -125,7 +125,7 @@ public class AzureTemplateOptions extends TemplateOptions implements Cloneable {
    public String getResourceGroup() { return resourceGroup; }
    public List<IpOptions> getIpOptions() { return ipOptions; }
    public WindowsConfiguration getWindowsConfiguration() { return windowsConfiguration; }
-   public Secrets getSecrets() { return secrets; }
+   public List<Secrets> getSecrets() { return secrets; }
 
    @Override
    public AzureTemplateOptions clone() {
@@ -261,7 +261,7 @@ public class AzureTemplateOptions extends TemplateOptions implements Cloneable {
       /**
        * @see AzureTemplateOptions#secrets(Secrets)
        */
-      public static AzureTemplateOptions secrets(Secrets secrets) {
+      public static AzureTemplateOptions secrets(Iterable<? extends Secrets> secrets) {
          AzureTemplateOptions options = new AzureTemplateOptions();
          return options.secrets(secrets);
       }      

@@ -236,13 +236,13 @@ public abstract class OSProfile {
     * The Secrets configuration of the VM
     */
    @Nullable
-   public abstract Secrets secrets();
+   public abstract List<Secrets> secrets();
 
    @SerializedNames({"computerName", "adminUsername", "adminPassword", "customData", "linuxConfiguration",
            "windowsConfiguration", "secrets"})
    public static OSProfile create(final String computerName, final String adminUsername, final String adminPassword,
                                   final String customData, final LinuxConfiguration linuxConfiguration,
-                                  final WindowsConfiguration windowsConfiguration, final Secrets secrets) {
+                                  final WindowsConfiguration windowsConfiguration, final List<Secrets> secrets) {
       return builder()
               .computerName(computerName)
               .adminUsername(adminUsername)
@@ -274,7 +274,7 @@ public abstract class OSProfile {
 
       public abstract Builder windowsConfiguration(WindowsConfiguration windowsConfiguration);
 
-      public abstract Builder secrets(Secrets secrets);
+      public abstract Builder secrets(List<Secrets> secrets);
 
       public abstract OSProfile build();
    }
