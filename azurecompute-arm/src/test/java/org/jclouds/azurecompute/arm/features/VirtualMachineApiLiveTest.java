@@ -252,9 +252,8 @@ public class VirtualMachineApiLiveTest extends BaseAzureComputeApiLiveTest {
       }
       
       StorageProfile storageProfile = StorageProfile.create(imgRef, osDisk.build(), ImmutableList.of(dataDisk.build()));
-      OSProfile.WindowsConfiguration windowsConfig = OSProfile.WindowsConfiguration.create(false, null, null, true,
-              null);
-      OSProfile osProfile = OSProfile.create(vmName, "azureuser", "RFe3&432dg", null, null, windowsConfig);
+      OSProfile.WindowsConfiguration windowsConfig = OSProfile.WindowsConfiguration.create(false, null, null, true);
+      OSProfile osProfile = OSProfile.create(vmName, "azureuser", "RFe3&432dg", null, null, windowsConfig, null);
       NetworkInterface networkInterface =
             NetworkInterface.create("/subscriptions/" + subscriptionid +
                       "/resourceGroups/" + resourceGroupName + "/providers/Microsoft.Network/networkInterfaces/"
