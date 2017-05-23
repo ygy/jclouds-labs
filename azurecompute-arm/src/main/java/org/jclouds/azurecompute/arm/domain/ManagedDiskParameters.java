@@ -29,7 +29,7 @@ public abstract class ManagedDiskParameters {
    // Might be null in custom images. In that case the API returns it in the OSDisk object.
    @Nullable public abstract StorageAccountType storageAccountType();
 
-   @SerializedNames({"id", "storageAccountType"})
+   @SerializedNames({"Id", "storageAccountType"})
    public static ManagedDiskParameters create(final String id, final String storageAccountType) {
       return new AutoValue_ManagedDiskParameters(id, StorageAccountType.fromString(storageAccountType));
    }
