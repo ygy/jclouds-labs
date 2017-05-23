@@ -179,7 +179,7 @@ public abstract class OSProfile {
        * unattend content
        */
       @Nullable
-      public abstract AdditionalUnattendContent additionalUnattendContent();
+      public abstract List<AdditionalUnattendContent> additionalUnattendContent();
 
       /**
        * is automatic updates enabled
@@ -188,7 +188,7 @@ public abstract class OSProfile {
 
       @SerializedNames({"provisionVMAgent", "winRM", "additionalUnattendContent", "enableAutomaticUpdates"})
       public static WindowsConfiguration create(final boolean provisionVMAgent, final WinRM winRM,
-                                                final AdditionalUnattendContent additionalUnattendContent,
+                                                final List<AdditionalUnattendContent> additionalUnattendContent,
                                                 final boolean enableAutomaticUpdates) {
 
          return new AutoValue_OSProfile_WindowsConfiguration(provisionVMAgent, winRM,
